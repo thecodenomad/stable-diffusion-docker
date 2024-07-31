@@ -42,10 +42,10 @@ services:
     security_opt:
       - seccomp:unconfined
     volumes:
-      - ./cache:/root/.cache
-      - ./stablediff.env:/stablediff.env
-      - ./stablediff-web:/stablediff-web
-      - ./stablediff-models:/stablediff-web/models/Stable-diffusion
+      - ./mounts/cache:/root/.cache
+      - ./mounts/stablediff.env:/stablediff.env
+      - ./mounts/stablediff-web:/stablediff-web
+      - ./mounts/stablediff-models:/stablediff-web/models/Stable-diffusion
 
   stablediff-comfyui:
     build: 
@@ -73,7 +73,8 @@ services:
     security_opt:
       - seccomp:unconfined
     volumes:
-      - ./comfyui-web:/comfyui
-      - ./stablediff-web/models:/comfyui/models
-      - ./stablediff-models:/comfyui/models/checkpoints
-      - ./comfyui-output:/comfyui/output
+      - ./mounts/comfyui-web:/comfyui
+      - ./mounts/stablediff-web/models:/comfyui/models
+      - ./mounts/stablediff-models:/comfyui/models/checkpoints
+      - ./mounts/comfyui-output:/comfyui/output
+

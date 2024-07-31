@@ -1,15 +1,15 @@
 build:
 	podman-compose build
+	mkdir -p mounts/comfyui-output    \
+                 mounts/comfyui-web       \
+                 mounts/stablediff-models \
+                 mounts/stablediff-web    \
+                 mounts/stablediff.env
 
-run:
-	podman pod rm -f pod_stable-diffusion
-	podman-compose up stablediff-rocm 
-
-
-sd:
+sd: build
 	podman pod rm -f pod_stable-diffusion
 	podman-compose up stablediff-rocm-web 
 
-comfyui:
+comfyui: build
 	podman pod rm -f pod_stable-diffusion
 	podman-compose up stablediff-comfyui 
