@@ -4,22 +4,24 @@ services:
   rocm-base:
     build:
       context: .
-      dockerfile: Dockerfile.rocm
-    container_name: rocm-base
+      dockerfile: Dockerfile
+      target: rocm-base
     environment:
       TZ: "America/Phoenix"
       ROC_ENABLE_PRE_VEGA: 1
       ## IMPORTANT!
       #ROCR_VISIBLE_DEVICES: 1
-      HSA_OVERRIDE_GFX_VERSION: "11.0.0"
+      # egpu
+      # HSA_OVERRIDE_GFX_VERSION: "11.1.0"
+      # framework RX 7000
+      HSA_OVERRIDE_GFX_VERSION: "11.0.2"
       PYTORCH_HIP_ALLOC_CONF: "garbage_collection_threshold:0.9,expandable_segments:True,max_split_size_mb:128"
 
   stablediff-rocm-web:
-    build: 
+    build:
       context: .
-      dockerfile: Dockerfile.sd
-    depends_on: rocm-base
-    container_name: stablediff-runner
+      dockerfile: Dockerfile
+      target: stablediff-webui-runner
     environment:
       COMMANDLINE_ARGS: "--listen --medvram --no-half --skip-torch-cuda-test"
     entrypoint: ["/bin/sh", "-c"]
@@ -42,17 +44,16 @@ services:
     security_opt:
       - seccomp:unconfined
     volumes:
-      - ./mounts/cache:/root/.cache
-      - ./mounts/stablediff.env:/stablediff.env
-      - ./mounts/stablediff-web:/stablediff-web
-      - ./mounts/stablediff-models:/stablediff-web/models/Stable-diffusion
+      - ./mounts/cache:/root/.cache:Z
+      - ./mounts/stablediff.env:/stablediff.env:Z
+      - ./mounts/stablediff-web:/stablediff-web:Z
+      - ./mounts/stablediff-models:/stablediff-web/models/Stable-diffusion:Z
 
   stablediff-comfyui:
-    build: 
+    build:
       context: .
-      dockerfile: Dockerfile.comfyui
-    depends_on: rocm-base
-    container_name: comfyui-runner
+      dockerfile: Dockerfile
+      target: comfyui-runner
     entrypoint: ["/bin/sh", "-c"]
     command: >
       "rocm-smi; ls -al; pwd;
@@ -73,8 +74,8 @@ services:
     security_opt:
       - seccomp:unconfined
     volumes:
-      - ./mounts/comfyui-web:/comfyui
-      - ./mounts/stablediff-web/models:/comfyui/models
-      - ./mounts/stablediff-models:/comfyui/models/checkpoints
-      - ./mounts/comfyui-output:/comfyui/output
+      - ./mounts/comfyui-web:/comfyui:Z
+      - ./mounts/stablediff-web/models:/comfyui/models:Z
+      - ./mounts/stablediff-models:/comfyui/models/checkpoints:Z
+      - ./mounts/comfyui-output:/comfyui/output:Z
 

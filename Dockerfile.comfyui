@@ -1,5 +1,5 @@
 # Dockerfile.rocm
-FROM localhost/stable-diffusion_rocm-base:latest 
+FROM stable-diffusion_rocm-base 
 
 # For convenience
 RUN mkdir -p /stablediff-web/models/Stable-diffusion 

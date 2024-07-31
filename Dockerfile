@@ -1,4 +1,6 @@
-# Dockerfile.rocm
+###################
+# Base Rocm Image #
+###################
 FROM rocm/dev-ubuntu-22.04 as rocm-base
 ENV DEBIAN_FRONTEND=noninteractive \
     PYTHONUNBUFFERED=1 \
@@ -17,27 +19,32 @@ ENV TORCH_COMMAND="pip install --pre torch torchvision torchaudio --index-url ht
 
 RUN python -m $TORCH_COMMAND
 
+RUN git clone https://github.com/AUTOMATIC1111/stable-diffusion-webui /sdtemp
+
+# Grab ComfyUI source
+RUN git clone https://github.com/comfyanonymous/ComfyUI.git /comfyui_temp
+
 EXPOSE 7860
 
-FROM builder as stablediff-runner
-
-RUN git clone https://github.com/AUTOMATIC1111/stable-diffusion-webui /sdtemp
+###########################
+# Stable Diffusion Web UI #
+###########################
+FROM rocm-base as stablediff-webui-runner
 
 RUN python launch.py --skip-torch-cuda-test --exit
 RUN python -m pip install opencv-python-headless
 WORKDIR /stablediff-web
 
-FROM builder as comfyui 
+#############################
+# Stable Diffusion Comfy UI #
+#############################
+FROM rocm-base as comfyui-runner 
 
 # For convenience
 RUN mkdir -p /stablediff-web/models/Stable-diffusion 
-
-# Grab ComfyUI source
-RUN git clone https://github.com/comfyanonymous/ComfyUI.git /comfyui_temp
 
 WORKDIR /comfyui_temp
 
 RUN pip install -r requirements.txt
 
 WORKDIR /comfyui
-

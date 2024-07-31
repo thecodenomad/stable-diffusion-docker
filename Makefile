@@ -7,9 +7,9 @@ build:
                  mounts/stablediff.env
 
 sd: build
-	podman pod rm -f pod_stable-diffusion
+	podman pod rm -f pod_stable-diffusion-docker 
 	podman-compose up stablediff-rocm-web 
 
 comfyui: build
-	podman pod rm -f pod_stable-diffusion
+	podman pod rm -f pod_stable-diffusion-docker 
 	podman-compose up stablediff-comfyui 
