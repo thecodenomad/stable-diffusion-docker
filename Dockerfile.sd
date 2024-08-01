@@ -1,9 +1,0 @@
-# Dockerfile.rocm
-FROM stable-diffusion_rocm-base 
-
-RUN git clone https://github.com/AUTOMATIC1111/stable-diffusion-webui /sdtemp
-
-RUN python launch.py --skip-torch-cuda-test --exit
-RUN python -m pip install opencv-python-headless
-WORKDIR /stablediff-web
-

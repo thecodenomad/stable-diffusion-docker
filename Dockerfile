@@ -3,9 +3,21 @@
 ###################
 FROM rocm/dev-ubuntu-22.04 as base
 
+ARG HSA_OVERRIDE_GFX_VERSION
+ENV HSA_OVERRIDE_GFX_VERSION=$HSA_OVERRIDE_GFX_VERSION
+
+ARG IGPU
+ENV IGPU=$IGPU
+
+ARG ROCM_VERSION 
+ENV ROCM_VERSION=$ROCM_VERSION
+
 ENV DEBIAN_FRONTEND=noninteractive \
     PYTHONUNBUFFERED=1 \
     PYTHONIOENCODING=UTF-8
+
+RUN echo $ROCM_VERSION; echo $HSA_OVERRIDE_GFX_VERSION; echo $IGPU
+
 RUN apt-get update &&\
     apt-get install -y \
     wget \
@@ -24,21 +36,11 @@ WORKDIR /sdtemp
 #################
 FROM base as rocm-base
 
-# Nightly
-# ENV TORCH_COMMAND="pip install --pre torch torchvision torchaudio --index-url https://download.pytorch.org/whl/nightly/rocm6.1"
-
-# Stable 
-# TODO: Remove, this was just for iterating to not destroy pypi
 RUN mkdir -p /tmp/pip_cache
 COPY ./build_cache/* /tmp/pip_cache
+
+# Install the cached wheels
 RUN pip install /tmp/pip_cache/*
-
-#ENV TORCH_COMMAND="pip install --pre torchvision torchaudio --index-url https://download.pytorch.org/whl/rocm6.1"
-
-# TODO: Re-enable
-# ENV TORCH_COMMAND="pip install --pre torch torchvision torchaudio --index-url https://download.pytorch.org/whl/rocm6.1"
-
-#RUN python -m $TORCH_COMMAND
 
 EXPOSE 7860
 

@@ -11,14 +11,18 @@ services:
       context: .
       dockerfile: Dockerfile
       target: rocm-base
-    environment:
-      TZ: "America/Phoenix"
-      ROC_ENABLE_PRE_VEGA: 1
       ##############################
       # Set based on your hardware #
       ############################## 
       # ROCR_VISIBLE_DEVICES: 1
-      HSA_OVERRIDE_GFX_VERSION: "11.0.0"
+      # Set IGPU: "1" if using Ryzen 7840 with 780M iGPU
+      args:
+        IGPU: "1"
+        ROCM_VERSION: "6.1"
+        HSA_OVERRIDE_GFX_VERSION: "11.0.0"
+    environment:
+      TZ: "America/Phoenix"
+      ROC_ENABLE_PRE_VEGA: 1
       PYTORCH_HIP_ALLOC_CONF: "garbage_collection_threshold:0.9,max_split_size_mb:512"
 
   stablediff-rocm-web:
