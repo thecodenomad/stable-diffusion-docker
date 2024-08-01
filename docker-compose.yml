@@ -1,6 +1,11 @@
 version: '3'
 services:
-
+  base:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: base
+  
   rocm-base:
     build:
       context: .
@@ -9,13 +14,12 @@ services:
     environment:
       TZ: "America/Phoenix"
       ROC_ENABLE_PRE_VEGA: 1
-      ## IMPORTANT!
-      #ROCR_VISIBLE_DEVICES: 1
-      # egpu
-      # HSA_OVERRIDE_GFX_VERSION: "11.1.0"
-      # framework RX 7000
-      HSA_OVERRIDE_GFX_VERSION: "11.0.2"
-      PYTORCH_HIP_ALLOC_CONF: "garbage_collection_threshold:0.9,expandable_segments:True,max_split_size_mb:128"
+      ##############################
+      # Set based on your hardware #
+      ############################## 
+      # ROCR_VISIBLE_DEVICES: 1
+      HSA_OVERRIDE_GFX_VERSION: "11.0.0"
+      PYTORCH_HIP_ALLOC_CONF: "garbage_collection_threshold:0.9,max_split_size_mb:512"
 
   stablediff-rocm-web:
     build:
@@ -23,10 +27,11 @@ services:
       dockerfile: Dockerfile
       target: stablediff-webui-runner
     environment:
-      COMMANDLINE_ARGS: "--listen --medvram --no-half --skip-torch-cuda-test"
+      HSA_OVERRIDE_GFX_VERSION: "11.0.0"
+      COMMANDLINE_ARGS: "--listen --medvram --upcast-sampling --opt-sub-quad-attention --precision full --no-half --skip-torch-cuda-test"
     entrypoint: ["/bin/sh", "-c"]
     command: >
-      "rocm-smi; . /stablediff.env; echo launch.py $$COMMANDLINE_ARGS;
+      "rocm-smi; . /stablediff.env; echo 'HSA_OVERRIDE_GFX_VERSION: ${HSA_OVERRIDE_GFX_VERSION}'; echo launch.py $COMMANDLINE_ARGS;
       if [ ! -d /stablediff-web/.git ]; then
         cp -a /sdtemp/. /stablediff-web/
       fi;
@@ -55,8 +60,10 @@ services:
       dockerfile: Dockerfile
       target: comfyui-runner
     entrypoint: ["/bin/sh", "-c"]
+    environment:
+      HSA_OVERRIDE_GFX_VERSION: "11.0.0"
     command: >
-      "rocm-smi; ls -al; pwd;
+      "rocm-smi; 
       if [ ! -d /comfyui/.git ]; then
         cp -a /comfyui_temp/. /comfyui/
       fi;
