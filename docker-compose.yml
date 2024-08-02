@@ -11,19 +11,8 @@ services:
       context: .
       dockerfile: Dockerfile
       target: rocm-base
-      ##############################
-      # Set based on your hardware #
-      ############################## 
-      # ROCR_VISIBLE_DEVICES: 1
-      # Set IGPU: "1" if using Ryzen 7840 with 780M iGPU
-      args:
-        IGPU: "1"
-        ROCM_VERSION: "6.1"
-        HSA_OVERRIDE_GFX_VERSION: "11.0.0"
     environment:
       TZ: "America/Phoenix"
-      ROC_ENABLE_PRE_VEGA: 1
-      PYTORCH_HIP_ALLOC_CONF: "garbage_collection_threshold:0.9,max_split_size_mb:512"
 
   stablediff-rocm-web:
     build:
@@ -31,8 +20,10 @@ services:
       dockerfile: Dockerfile
       target: stablediff-webui-runner
     environment:
-      HSA_OVERRIDE_GFX_VERSION: "11.0.0"
-      COMMANDLINE_ARGS: "--listen --medvram --upcast-sampling --opt-sub-quad-attention --precision full --no-half --skip-torch-cuda-test"
+      ROC_ENABLE_PRE_VEGA: 1
+      PYTORCH_HIP_ALLOC_CONF: "garbage_collection_threshold:0.9,max_split_size_mb:128"
+      #      COMMANDLINE_ARGS: "--listen --lowvram --upcast-sampling --opt-sub-quad-attention --precision full --no-half --skip-torch-cuda-test"
+      COMMANDLINE_ARGS: "--listen --opt-split-attention --opt-channelslast --always-batch-cond-uncond --medvram --opt-sub-quad-attention --upcast-sampling --skip-torch-cuda-test"
     entrypoint: ["/bin/sh", "-c"]
     command: >
       "rocm-smi; . /stablediff.env; echo 'HSA_OVERRIDE_GFX_VERSION: ${HSA_OVERRIDE_GFX_VERSION}'; echo launch.py $COMMANDLINE_ARGS;

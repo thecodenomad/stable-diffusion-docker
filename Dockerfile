@@ -3,20 +3,22 @@
 ###################
 FROM rocm/dev-ubuntu-22.04 as base
 
-ARG HSA_OVERRIDE_GFX_VERSION
-ENV HSA_OVERRIDE_GFX_VERSION=$HSA_OVERRIDE_GFX_VERSION
-
-ARG IGPU
-ENV IGPU=$IGPU
-
-ARG ROCM_VERSION 
-ENV ROCM_VERSION=$ROCM_VERSION
+# Build Args
+ARG HSA_OVERRIDE_GFX_VERSION=11.0.0
+ARG IGPU=0
+ARG NIGHTLY=0 
+ARG ROCM_VERSION=5.7
 
 ENV DEBIAN_FRONTEND=noninteractive \
     PYTHONUNBUFFERED=1 \
     PYTHONIOENCODING=UTF-8
 
-RUN echo $ROCM_VERSION; echo $HSA_OVERRIDE_GFX_VERSION; echo $IGPU
+ENV HSA_OVERRIDE_GFX_VERSION $HSA_OVERRIDE_GFX_VERSION
+ENV IGPU $IGPU
+ENV NIGHTLY $NIGHTLY
+ENV ROCM_VERSION $ROCM_VERSION
+
+RUN env
 
 RUN apt-get update &&\
     apt-get install -y \
@@ -37,7 +39,7 @@ WORKDIR /sdtemp
 FROM base as rocm-base
 
 RUN mkdir -p /tmp/pip_cache
-COPY ./build_cache/* /tmp/pip_cache
+COPY build_cache/* /tmp/pip_cache
 
 # Install the cached wheels
 RUN pip install /tmp/pip_cache/*
