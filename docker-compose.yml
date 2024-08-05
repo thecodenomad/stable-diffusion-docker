@@ -1,30 +1,31 @@
 version: '3'
 services:
-
+  base:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: base
+  
   rocm-base:
     build:
       context: .
-      dockerfile: Dockerfile.rocm
-    container_name: rocm-base
+      dockerfile: Dockerfile
+      target: rocm-base
     environment:
       TZ: "America/Phoenix"
-      ROC_ENABLE_PRE_VEGA: 1
-      ## IMPORTANT!
-      #ROCR_VISIBLE_DEVICES: 1
-      HSA_OVERRIDE_GFX_VERSION: "11.0.0"
-      PYTORCH_HIP_ALLOC_CONF: "garbage_collection_threshold:0.9,expandable_segments:True,max_split_size_mb:128"
 
   stablediff-rocm-web:
-    build: 
+    build:
       context: .
-      dockerfile: Dockerfile.sd
-    depends_on: rocm-base
-    container_name: stablediff-runner
+      dockerfile: Dockerfile
+      target: stablediff-webui-runner
     environment:
-      COMMANDLINE_ARGS: "--listen --medvram --no-half --skip-torch-cuda-test"
+      ROC_ENABLE_PRE_VEGA: 1
+      PYTORCH_HIP_ALLOC_CONF: "garbage_collection_threshold:0.9,max_split_size_mb:128"
+      COMMANDLINE_ARGS: "--listen --opt-split-attention --opt-channelslast --always-batch-cond-uncond --medvram --opt-sub-quad-attention --upcast-sampling --skip-torch-cuda-test"
     entrypoint: ["/bin/sh", "-c"]
     command: >
-      "rocm-smi; . /stablediff.env; echo launch.py $$COMMANDLINE_ARGS;
+      "rocm-smi; . /stablediff.env; echo 'HSA_OVERRIDE_GFX_VERSION: ${HSA_OVERRIDE_GFX_VERSION}'; echo launch.py $COMMANDLINE_ARGS;
       if [ ! -d /stablediff-web/.git ]; then
         cp -a /sdtemp/. /stablediff-web/
       fi;
@@ -42,24 +43,25 @@ services:
     security_opt:
       - seccomp:unconfined
     volumes:
-      - ./cache:/root/.cache
-      - ./stablediff.env:/stablediff.env
-      - ./stablediff-web:/stablediff-web
-      - ./stablediff-models:/stablediff-web/models/Stable-diffusion
+      - ./mounts/cache:/root/.cache:Z
+      - ./mounts/stablediff.env:/stablediff.env:Z
+      - ./mounts/webui/stablediff-web:/stablediff-web:Z
+      - ./mounts/models:/stablediff-web/models:Z
 
   stablediff-comfyui:
-    build: 
+    build:
       context: .
-      dockerfile: Dockerfile.comfyui
-    depends_on: rocm-base
-    container_name: comfyui-runner
+      dockerfile: Dockerfile
+      target: comfyui-runner
     entrypoint: ["/bin/sh", "-c"]
+    environment:
+      HSA_OVERRIDE_GFX_VERSION: "11.0.0"
     command: >
-      "rocm-smi; ls -al; pwd;
+      "rocm-smi; 
       if [ ! -d /comfyui/.git ]; then
         cp -a /comfyui_temp/. /comfyui/
       fi;
-      python main.py --listen"
+      python main.py --listen --extra-model-paths-config /models/configs/extra_model_paths.yaml"
     ports:
       - "7860:8188"
     devices:
@@ -73,7 +75,7 @@ services:
     security_opt:
       - seccomp:unconfined
     volumes:
-      - ./comfyui-web:/comfyui
-      - ./stablediff-web/models:/comfyui/models
-      - ./stablediff-models:/comfyui/models/checkpoints
-      - ./comfyui-output:/comfyui/output
+      - ./mounts/webui/comfyui-web:/comfyui:Z
+      - ./mounts/comfyui-output:/comfyui/output:Z
+      - ./mounts/models:/models:Z
+
