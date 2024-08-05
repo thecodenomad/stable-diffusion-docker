@@ -63,6 +63,13 @@ WORKDIR /stablediff-web
 FROM rocm-base as comfyui-runner 
 
 RUN git clone https://github.com/comfyanonymous/ComfyUI.git /comfyui_temp
+
+# Install ComfyUI Manager
+RUN git clone https://github.com/ltdrdata/ComfyUI-Manager.git /comfyui_temp/custom_nodes/ComfyUI-Manager
+
 RUN pip install -r /comfyui_temp/requirements.txt
 
+COPY ./extra_model_paths.yaml /comfyui_temp/extra_model_paths.yaml
+
 WORKDIR /comfyui
+

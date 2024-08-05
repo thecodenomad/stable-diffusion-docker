@@ -22,7 +22,6 @@ services:
     environment:
       ROC_ENABLE_PRE_VEGA: 1
       PYTORCH_HIP_ALLOC_CONF: "garbage_collection_threshold:0.9,max_split_size_mb:128"
-      #      COMMANDLINE_ARGS: "--listen --lowvram --upcast-sampling --opt-sub-quad-attention --precision full --no-half --skip-torch-cuda-test"
       COMMANDLINE_ARGS: "--listen --opt-split-attention --opt-channelslast --always-batch-cond-uncond --medvram --opt-sub-quad-attention --upcast-sampling --skip-torch-cuda-test"
     entrypoint: ["/bin/sh", "-c"]
     command: >
@@ -46,8 +45,8 @@ services:
     volumes:
       - ./mounts/cache:/root/.cache:Z
       - ./mounts/stablediff.env:/stablediff.env:Z
-      - ./mounts/stablediff-web:/stablediff-web:Z
-      - ./mounts/stablediff-models:/stablediff-web/models/Stable-diffusion:Z
+      - ./mounts/webui/stablediff-web:/stablediff-web:Z
+      - ./mounts/models:/stablediff-web/models:Z
 
   stablediff-comfyui:
     build:
@@ -62,7 +61,7 @@ services:
       if [ ! -d /comfyui/.git ]; then
         cp -a /comfyui_temp/. /comfyui/
       fi;
-      python main.py --listen"
+      python main.py --listen --extra-model-paths-config /models/configs/extra_model_paths.yaml"
     ports:
       - "7860:8188"
     devices:
@@ -76,8 +75,7 @@ services:
     security_opt:
       - seccomp:unconfined
     volumes:
-      - ./mounts/comfyui-web:/comfyui:Z
-      - ./mounts/stablediff-web/models:/comfyui/models:Z
-      - ./mounts/stablediff-models:/comfyui/models/checkpoints:Z
+      - ./mounts/webui/comfyui-web:/comfyui:Z
       - ./mounts/comfyui-output:/comfyui/output:Z
+      - ./mounts/models:/models:Z
 
