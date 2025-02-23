@@ -7,12 +7,14 @@ NIGHTLY="0"
 build_cache:
 	mkdir -p mounts/comfyui-output \
                  mounts/comfyui-web \
-                 mounts/models \
+                 mounts/models/configs \
                  mounts/stablediff-web \
                  mounts/stablediff.env \
 		 mounts/audio_outputs \
                  build_cache
 
+	# Copy extra models path
+	cp extra_model_paths.yaml mounts/models/configs/ 
 
         # Build base container to grab pytorch dependencies 
 	podman-compose build --build-arg IGPU="${IGPU}" \
