@@ -56,8 +56,9 @@ services:
     entrypoint: ["/bin/sh", "-c"]
     environment:
       HSA_OVERRIDE_GFX_VERSION: "11.0.0"
+      # HCC_AMDGPU_TARGET: "gfx1103"
     command: >
-      "rocm-smi; 
+      "rocm-smi; rocminfo;
       if [ ! -d /comfyui/.git ]; then
         cp -a /comfyui_temp/. /comfyui/
       fi;
@@ -67,9 +68,8 @@ services:
     devices:
       - "/dev/kfd:/dev/kfd"
       - "/dev/dri:/dev/dri"
-    group_add:
-      - video
     ipc: host
+    network_mode: host
     cap_add:
       - SYS_PTRACE
     security_opt:
